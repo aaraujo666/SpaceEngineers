@@ -18,8 +18,9 @@ namespace Sandbox.Game.GUI.HudViewers
 {
     public class MyHudMarkerRender
     {
-
         const float MAX_ANTENNA_DRAW_DISTANCE = 500000;
+        const double AU_METRES = 1.495978707e+11;
+        const double LY_METRES = 9.460730473e+15;
 
         static float m_friendAntennaRange = MAX_ANTENNA_DRAW_DISTANCE;
 
@@ -305,9 +306,27 @@ namespace Sandbox.Game.GUI.HudViewers
                     objectDistance.Start(markerStyle.Font, projectedPoint2D + new Vector2(0, MyHudConstants.HUD_TEXTS_OFFSET),
                         hudColor, 0.8f, MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER);
 
-                    //  Create string builder with distance in metres, e.g. "123m"                    
-                    objectDistance.AppendInt32((int)Math.Round(distance));
-                    objectDistance.Append("m");
+                    // Create a string builder with the distance in metres, kilometres, astronomical units or light years
+                    if (distance > LY_METRES)
+                    {
+                        objectDistance.Append(Math.Round(distance / LY_METRES, 2).ToString());
+                        objectDistance.Append("ly");
+                    }
+                    else if (distance > AU_METRES)
+                    {
+                        objectDistance.Append(Math.Round(distance / AU_METRES, 2).ToString());
+                        objectDistance.Append("AU");
+                    }
+                    else if(distance > 1000)
+                    {
+                        objectDistance.Append(Math.Round(distance / 1000, 2).ToString());
+                        objectDistance.Append("km");
+                    }
+                    else
+                    {
+                        objectDistance.AppendInt32((int)Math.Round(distance));
+                        objectDistance.Append("m");
+                    }
                 }
             }
         }
