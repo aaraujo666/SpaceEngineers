@@ -546,7 +546,7 @@ namespace Sandbox.Graphics.GUI
         {
             base.Draw(transitionAlpha, backgroundTransitionAlpha);
             RefreshItemsRectangle();
-            DrawItemBackgrounds(backgroundTransitionAlpha);
+            DrawItemBackgrounds(transitionAlpha, backgroundTransitionAlpha);
             DrawItems(transitionAlpha);
             DrawItemTexts(transitionAlpha);
             //DebugDraw();
@@ -700,7 +700,7 @@ namespace Sandbox.Graphics.GUI
             }
         }
 
-        private void DrawItemBackgrounds(float transitionAlpha)
+        private void DrawItemBackgrounds(float transitionAlpha, float backgroundTransitionAlpha)
         {
             var normalTexture = m_styleDef.ItemTexture.Normal;
             var highlightTexture = m_styleDef.ItemTexture.Highlight;
@@ -729,8 +729,10 @@ namespace Sandbox.Graphics.GUI
                         texture: highlight ? highlightTexture : normalTexture,
                         normalizedCoord: drawPositionTopLeft,
                         normalizedSize: ItemSize,
-                        color: ApplyColorMaskModifiers(ColorMask, enabled, transitionAlpha * blinkingTransparency),
+                        color: ApplyColorMaskModifiers(ColorMask, enabled, backgroundTransitionAlpha * blinkingTransparency),
                         drawAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP);
+                    if (highlight && backgroundTransitionAlpha < 0.2)
+                        MyGuiManager.DrawBorders(drawPositionTopLeft, ItemSize, ApplyColorMaskModifiers(MyGuiConstants.THEMED_GUI_LINE_COLOR.ToVector4(), Enabled, transitionAlpha),1);
                     ++idx;
                 }
             }
