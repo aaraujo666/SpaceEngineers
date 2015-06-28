@@ -41,7 +41,7 @@ namespace Sandbox.Game.Gui
         /// <param name="minMaxDecimalDigits">Number of digits used from min and max value. Decimal places beyond this value are cut off (no rounding occurs).</param>
         /// <param name="parseAsInteger">True will ensure parsing as integer number (you cannot input decimal values). False will parse as decimal number.</param>
         public MyGuiScreenDialogAmount(float min, float max, int minMaxDecimalDigits = 3, bool parseAsInteger = false, float? defaultAmount = null, MyStringId? caption = null) :
-            base(new Vector2(0.5f, 0.5f), MyGuiConstants.SCREEN_BACKGROUND_COLOR, null)
+            base(new Vector2(0.5f, 0.5f), MyGuiConstants.SCREEN_BACKGROUND_COLOR, null, backgroundTransition: MySandboxGame.Config.UIBkTransparency, guiTransition: MySandboxGame.Config.UITransparency)
         {
             CanHideOthers = false;
             EnabledBackgroundFade = true;
