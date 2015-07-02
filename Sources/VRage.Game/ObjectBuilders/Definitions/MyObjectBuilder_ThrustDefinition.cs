@@ -51,5 +51,8 @@ namespace Sandbox.Common.ObjectBuilders.Definitions
 
         [ProtoMember]
         public float FlameDamage = 0.5f;
+
+        [ProtoMember]
+        public bool EnableFlameColoring = false;
     }
 }

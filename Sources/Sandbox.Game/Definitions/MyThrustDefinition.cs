@@ -26,6 +26,8 @@ namespace Sandbox.Definitions
         public float FlameGlareSize;
         public float FlameGlareQuerySize;
 
+        public bool EnableFlameColoring;
+
         protected override void Init(MyObjectBuilder_DefinitionBase builder)
         {
             base.Init(builder);
@@ -47,6 +49,7 @@ namespace Sandbox.Definitions
             FlameVisibilityDistance = thrustBuilder.FlameVisibilityDistance;
             FlameGlareSize = thrustBuilder.FlameGlareSize;
             FlameGlareQuerySize = thrustBuilder.FlameGlareQuerySize;
+            EnableFlameColoring = thrustBuilder.EnableFlameColoring;
         }
     }
 }
