@@ -57,8 +57,22 @@ namespace Sandbox.Game.Entities
         private MyGridThrustSystem m_thrustSystem;
 
         MyLight m_light;
-
-        Vector4 m_thrustColor;
+        Color m_thrustColor;
+        public Color ThrustColor 
+        { 
+            get 
+            {
+                return m_thrustColor; 
+            }
+            set
+            {
+                if (m_thrustColor != value)
+                {
+                    m_thrustColor = value;
+                    RaisePropertiesChanged();
+                }
+            }
+        }
 
         private new MySyncThruster SyncObject;
 
@@ -136,6 +150,7 @@ namespace Sandbox.Game.Entities
         {
             return IsPowered && base.CheckIsWorking();
         }
+
         public MyLight Light { get { return m_light; } }
 
         public void UpdateThrustFlame()
@@ -147,14 +162,15 @@ namespace Sandbox.Game.Entities
 
         public void UpdateThrustColor()
         {
-            m_thrustColor = Vector4.Lerp(m_thrustDefinition.FlameIdleColor, m_thrustDefinition.FlameFullColor, CurrentStrength / MyConstants.MAX_THRUST);
+            m_thrustColor = Color.Lerp(m_thrustColor, m_thrustColor, CurrentStrength / MyConstants.MAX_THRUST);
             Light.Color = m_thrustColor;
         }
-        public Vector4 ThrustColor { get { return m_thrustColor; } }
+        
         public bool CanDraw()
         {
             return IsWorking && Vector3.DistanceSquared(MySector.MainCamera.Position, PositionComp.GetPosition()) < m_maxBillboardDistanceSquared;
         }
+
         public void UpdateLight()
         {
             bool shouldLit = (float)Vector3D.DistanceSquared(MySector.MainCamera.Position, PositionComp.GetPosition()) < m_maxLightDistanceSquared; ;
@@ -178,10 +194,7 @@ namespace Sandbox.Game.Entities
 
                 Light.GlareOn = true;
 
-                if (((MyCubeGrid)Parent).GridSizeEnum == MyCubeSize.Large)
-                    Light.GlareIntensity = 0.5f + length * 2;
-                else
-                    Light.GlareIntensity = 0.5f + length * 2;
+                Light.GlareIntensity = ((MyCubeGrid)Parent).GridSize + length * 2;
 
                 Light.GlareType = VRageRender.Lights.MyGlareTypeEnum.Normal;
                 Light.GlareSize = (radius * 0.8f + length * 0.05f) * m_glareSize;
@@ -230,6 +243,11 @@ namespace Sandbox.Game.Entities
                         MyValueFormatter.AppendForceInBestUnit(x.ThrustOverride, result);
                 };
             MyTerminalControlFactory.AddControl(thrustOverride);
+
+            var thrustFlameColor = new MyTerminalControlColor<MyThrust>("Color", MyStringId.GetOrCompute("Flame Color"));
+            thrustFlameColor.Getter = (x) => x.ThrustColor;
+            thrustFlameColor.Setter = (x, v) => x.SyncObject.SendChangeFlameColorRequest(v);
+            MyTerminalControlFactory.AddControl(thrustFlameColor);
         }
 
         public MyThrust()
@@ -254,6 +272,13 @@ namespace Sandbox.Game.Entities
         {
             var builder = (MyObjectBuilder_Thrust)base.GetObjectBuilderCubeBlock(copy);
             builder.ThrustOverride = ThrustOverride;
+
+            var col = ThrustColor.ToVector4();
+            builder.FlameColorR = col.X;
+            builder.FlameColorG = col.Y;
+            builder.FlameColorB = col.Z;
+            builder.FlameColorA = col.W;
+
             return builder;
         }
 
@@ -265,12 +290,22 @@ namespace Sandbox.Game.Entities
 
             var builder = (MyObjectBuilder_Thrust)objectBuilder;
 
-            m_thrustColor = m_thrustDefinition.FlameIdleColor;
+            Vector4 color = builder.FlameColorA == 0f ? m_thrustDefinition.FlameIdleColor : new Vector4(builder.FlameColorR, builder.FlameColorG, builder.FlameColorB, builder.FlameColorA);
+            m_thrustColor = Color.FromNonPremultiplied(color);
 
             ThrustOverride = builder.ThrustOverride;
 
             LoadDummies();
 
+            InitLight();
+            
+            SyncObject = new MySyncThruster(this);
+
+            UpdateDetailedInfo();
+        }
+
+        void InitLight()
+        {
             m_light = MyLights.AddLight();
             m_light.ReflectorDirection = WorldMatrix.Forward;
             m_light.ReflectorUp = WorldMatrix.Up;
@@ -284,9 +319,6 @@ namespace Sandbox.Game.Entities
             m_maxLightDistanceSquared = m_maxBillboardDistanceSquared / 100;
 
             m_light.Start(MyLight.LightTypeEnum.PointLight, 1);
-            SyncObject = new MySyncThruster(this);
-
-            UpdateDetailedInfo();
         }
 
         public override void OnRegisteredToGridSystems()
